@@ -1,6 +1,6 @@
-# Invigil grades itself (dogfood). Invigil is a library + GitHub Action published
-# to PyPI as `invigil`; it isn't a booted service, so the Stranger Gate's
-# artifacts/probes are intentionally omitted here.
+# Invigil grades itself (dogfood). The nightly Stranger Gate installs the
+# published PyPI package and runs the published CLI image — the two things a
+# stranger actually downloads.
 version: 1
 
 project:
@@ -8,3 +8,13 @@ project:
   language: python
   min_gate: G4
   enforce: false        # report-only until the grade stabilizes (C6 flips this)
+
+artifacts:
+  # `pip install invigil` on a clean venv must succeed today, not just at release time.
+  - type: pypi
+    name: invigil
+  # The CLI image: `command` present → run to completion, exit 0 is the contract.
+  - type: ghcr
+    image: ghcr.io/invigil/invigil:latest
+    command: ["--version"]
+    expect_contains: "invigil"

@@ -8,7 +8,7 @@ import pytest
 
 from invigil import stranger
 from invigil.config import InvigilConfig
-from invigil.stranger import Probe, StrangerError, resolve_url, run, run_probes
+from invigil.stranger import Probe, StrangerError, evaluate_cli, resolve_url, run, run_probes
 
 
 def test_probe_from_dict():
@@ -36,6 +36,15 @@ def test_evaluate_json_count():
     assert p.evaluate(200, "[1,2,3]")[0] is False
     ok, detail = p.evaluate(200, "not json")
     assert ok is False and "JSON" in detail
+
+
+def test_evaluate_cli():
+    assert evaluate_cli(0, "invigil 1.1.0", "invigil")[0] is True
+    assert evaluate_cli(0, "anything", None)[0] is True
+    ok, detail = evaluate_cli(2, "boom", None)
+    assert ok is False and "exit code 2" in detail
+    ok, detail = evaluate_cli(0, "other tool", "invigil")
+    assert ok is False and "invigil" in detail
 
 
 def test_resolve_url():
@@ -98,3 +107,49 @@ def test_run_orchestration_happy_path(monkeypatch):
     assert any("postgres:16-alpine" in c for c in calls)
     assert any("ghcr.io/demo/app:edge" in c for c in calls)
     assert any("rm" in c for c in calls)  # _teardown
+
+
+def test_run_cli_artifact(monkeypatch):
+    """A ghcr artifact with `command` runs to completion — no daemon, no probes."""
+    import subprocess
+
+    calls = []
+
+    def fake_run(*cmd, check=True):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, "invigil 1.1.0", "")
+
+    monkeypatch.setattr(stranger, "_run", fake_run)
+
+    cfg = InvigilConfig(
+        name="cli",
+        artifacts=[
+            {
+                "type": "ghcr",
+                "image": "ghcr.io/invigil/invigil:latest",
+                "command": ["--version"],
+                "expect_contains": "invigil",
+            }
+        ],
+        boot_budget_minutes=1,
+    )
+    run(cfg)  # must not raise
+    cli_call = next(c for c in calls if "ghcr.io/invigil/invigil:latest" in c)
+    assert "--rm" in cli_call and "--version" in cli_call
+    assert "-d" not in cli_call  # ran to completion, not detached
+
+
+def test_run_cli_artifact_fails_on_bad_exit(monkeypatch):
+    import subprocess
+
+    monkeypatch.setattr(
+        stranger, "_run", lambda *cmd, check=True: subprocess.CompletedProcess(cmd, 1, "", "no such flag")
+    )
+    cfg = InvigilConfig(
+        name="cli",
+        artifacts=[{"type": "ghcr", "image": "ghcr.io/x/y:latest", "command": ["--nope"]}],
+        boot_budget_minutes=1,
+    )
+    with pytest.raises(StrangerError) as e:
+        run(cfg)
+    assert "exit code 1" in str(e.value)

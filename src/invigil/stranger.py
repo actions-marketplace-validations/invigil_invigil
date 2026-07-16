@@ -63,6 +63,15 @@ class Probe:
         return True, "ok"
 
 
+def evaluate_cli(returncode: int, output: str, expect_contains: str | None) -> tuple[bool, str]:
+    """Pure check of a CLI artifact's run: exit 0, plus an optional output substring."""
+    if returncode != 0:
+        return False, f"exit code {returncode} != 0"
+    if expect_contains and expect_contains not in output:
+        return False, f"output missing {expect_contains!r}"
+    return True, "ok"
+
+
 def resolve_url(probe_url: str, default_port: int | None) -> str:
     """Absolute URLs pass through; a bare path is served from the artifact's port."""
     if probe_url.startswith(("http://", "https://")):
@@ -146,7 +155,19 @@ def _boot_artifacts(cfg: InvigilConfig, state: _Started) -> int | None:
     """Boot each artifact; return the port of the last HTTP-serving (ghcr) one."""
     default_port = None
     for i, art in enumerate(cfg.artifacts):
-        if art.get("type") == "ghcr":
+        if art.get("type") == "ghcr" and art.get("command") is not None:
+            # A CLI image (command present): run it to completion instead of
+            # booting a daemon — no port, no HTTP probe, exit code is the truth.
+            args = ["docker", "run", "--rm"]
+            for k, v in (art.get("env") or {}).items():
+                args += ["-e", f"{k}={v}"]
+            args += [art["image"], *[str(c) for c in art["command"]]]
+            r = _run(*args, check=False)
+            ok, detail = evaluate_cli(r.returncode, (r.stdout or "") + (r.stderr or ""), art.get("expect_contains"))
+            print(f"  {'PASS' if ok else 'FAIL'}  {art['image']}  ({detail})")
+            if not ok:
+                raise StrangerError(f"cli artifact {art['image']}: {detail}")
+        elif art.get("type") == "ghcr":
             name = f"invigil-art-{i}"
             args = ["docker", "run", "-d", "--network", "host", "--name", name]
             for k, v in (art.get("env") or {}).items():

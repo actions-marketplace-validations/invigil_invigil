@@ -39,6 +39,20 @@ It grades against seven **Gates**, each a promise to a different stranger:
 A repo *reaches* `Gn` only when every mandatory check for gates ≤ n passes, and gets a letter
 grade from its weighted score.
 
+## Install
+
+One tool, four doors — pick the one that matches where you run it:
+
+| Channel | Where it fits | One-liner |
+|---|---|---|
+| **PyPI** | local runs, Python-friendly CI | `pip install invigil` |
+| **GitHub Action** | GitHub PRs | `uses: invigil/invigil@v1` |
+| **Docker (ghcr)** | GitLab, Jenkins, any non-Python CI | `docker run --rm -v "$PWD:/repo" ghcr.io/invigil/invigil score /repo` |
+| **pre-commit** | offline checks on every commit | hooks `invigil-layout`, `invigil-secrets` (below) |
+
+Every release ships all of it signed: cosign-signed wheel, sdist, and container image, plus an
+SPDX SBOM — verifiable with `cosign verify` against the GitHub OIDC identity.
+
 ## Quick Start
 
 Run it locally on any repo:

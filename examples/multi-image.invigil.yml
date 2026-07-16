@@ -18,6 +18,11 @@ services:
     ports: ["5432:5432"]
 
 artifacts:
+  # A CLI image: `command` present → run to completion (exit 0), no daemon/probe.
+  - type: ghcr
+    image: ghcr.io/invigil/invigil:latest
+    command: ["--version"]
+    expect_contains: "invigil"
   - type: ghcr
     image: ghcr.io/kaaval/kaaval-dashboard:edge
     port: 3000

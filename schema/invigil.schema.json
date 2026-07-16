@@ -67,7 +67,13 @@
           "image": { "type": "string", "description": "Container image ref, e.g. ghcr.io/kaaval/kaaval:edge." },
           "boot": { "type": "string", "description": "Optional custom boot command/script." },
           "env": { "type": "object", "additionalProperties": { "type": "string" } },
-          "port": { "type": "integer" }
+          "port": { "type": "integer" },
+          "command": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "ghcr only: marks a CLI image. Run to completion with these entrypoint args (docker run --rm) instead of booting a daemon; the run must exit 0."
+          },
+          "expect_contains": { "type": "string", "description": "ghcr+command only: substring the CLI output must contain." }
         }
       }
     },
