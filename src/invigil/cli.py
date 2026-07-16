@@ -88,6 +88,7 @@ def main(argv: list[str] | None = None) -> int:
     pf_cmd.add_argument("paths", nargs="+", help="repo paths to score")
     pf_cmd.add_argument("--update", help="replace the invigil:portfolio marker block in this file")
     pf_cmd.add_argument("--date", default=None, help="override the generated-on date (for reproducible output)")
+    pf_cmd.add_argument("--badges-dir", help="write a shields.io endpoint badge <repo>.json per repo into DIR")
 
     args = parser.parse_args(argv)
 
@@ -156,6 +157,15 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
             sc, _ = score(repo)
             scorecards.append(sc)
+        if args.badges_dir:
+            from .report import as_badge
+
+            bdir = Path(args.badges_dir)
+            bdir.mkdir(parents=True, exist_ok=True)
+            for sc in scorecards:
+                (bdir / f"{sc.repo}.json").write_text(as_badge(sc) + "\n")
+            print(f"wrote {len(scorecards)} badge(s) to {bdir}")
+
         table = build_table(scorecards, args.date or date.today().isoformat())
         if args.update:
             target = Path(args.update)

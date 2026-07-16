@@ -34,20 +34,25 @@ jobs:
           paths="."
           for slug in $REPOS; do
             dir="_repo_$(basename "$slug")"
-            gh repo clone "$slug" "$dir" -- --depth 1
-            paths="$paths $dir"
+            # Tolerant: an unreachable/private repo is skipped, not fatal — the
+            # last-committed badge for it simply stays until it becomes reachable.
+            if gh repo clone "$slug" "$dir" -- --depth 1 2>/dev/null; then
+              paths="$paths $dir"
+            else
+              echo "::warning::could not clone $slug — skipping"
+            fi
           done
           [ -f PORTFOLIO.md ] || printf '# Portfolio grades\n\n' > PORTFOLIO.md
-          invigil portfolio $paths --update PORTFOLIO.md
+          invigil portfolio $paths --update PORTFOLIO.md --badges-dir badges
           rm -rf _repo_*
 
       - name: Commit if changed
         run: |
-          if ! git diff --quiet PORTFOLIO.md; then
+          if ! git diff --quiet PORTFOLIO.md badges/; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add PORTFOLIO.md
-            git commit -m "chore: refresh portfolio grades [skip ci]"
+            git add PORTFOLIO.md badges/
+            git commit -m "chore: refresh portfolio grades + badges [skip ci]"
             git push
           else
             echo "grades unchanged"

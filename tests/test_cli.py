@@ -94,3 +94,13 @@ def test_score_layer_filter_local_only(tmp_path):
     make_good_repo(tmp_path)
     sc, _ = cli.score(tmp_path, only_layers={"local"})
     assert all(r.check.layer == "local" for r in sc.results)
+
+
+def test_portfolio_badges_dir(tmp_path):
+    repo = tmp_path / "demo"
+    repo.mkdir()
+    make_good_repo(repo)
+    badges = tmp_path / "badges"
+    cli.main(["portfolio", str(repo), "--badges-dir", str(badges), "--date", "2026-07-16"])
+    badge = json.loads((badges / "demo.json").read_text())
+    assert badge["schemaVersion"] == 1 and badge["label"] == "invigil"
