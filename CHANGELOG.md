@@ -4,7 +4,7 @@ All notable changes to Invigil are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0] - 2026-07-16
 
 ### Added
 - Static Doctrine Scorecard: check registry mapped to Gates G1–G5, weighted
@@ -27,4 +27,4 @@ All notable changes to Invigil are documented here. Format follows
 - **AI-native group (`ai`):** `llms-no-secrets` and `agent-scope-visibility` — the
   statically-honest first slice of "agent blast radius".
 
-[Unreleased]: https://github.com/invigil/invigil/commits/main
+[1.0.0]: https://github.com/invigil/invigil/releases/tag/v1.0.0
