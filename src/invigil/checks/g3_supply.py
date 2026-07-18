@@ -1,4 +1,4 @@
-"""G3 — machines watch what users won't report (Discipline D3).
+"""G3 — machines watch what users won't report.
 
 Repo CI tests source; these checks prove the supply-chain gates that make quality
 non-optional: a scheduled smoke-test of the *published* artifact, an enforced

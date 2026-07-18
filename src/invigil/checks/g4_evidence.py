@@ -1,4 +1,4 @@
-"""G4 — supply-chain evidence is public (Discipline D3, the enterprise door).
+"""G4 — supply-chain evidence is public (the enterprise door).
 
 A security-branded project is held to a higher bar, and meeting it publicly is
 itself marketing: an OpenSSF Scorecard workflow (and a >=7 score), signed

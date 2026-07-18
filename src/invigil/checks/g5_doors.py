@@ -1,4 +1,4 @@
-"""G5 — all five doors open and documented (Discipline D5).
+"""G5 — all five doors open and documented.
 
 One product, five first-class entrances: newbie (quickstart — covered in G1),
 seasoned operator (API/CLI reference), OSS contributor (CONTRIBUTING + a menu of

@@ -14,10 +14,25 @@ your project keeps the promises a stranger relies on:** that they can boot it in
 that every error tells them the fix, that the thing on PyPI actually installs today, that the
 README is still a landing page and not a 600-line wall.
 
+This is the **Stranger Gate**: the gauntlet every open-source project runs when a new developer finds it. If they can't get to "hello world" in 10 minutes, they leave. If the artifact on PyPI is broken because CI only tests the source tree, they leave. If the error message is a silent stack trace, they leave.
+
 Invigil turns those promises into mechanical, exact-fix-reporting checks and runs them in CI —
 so the project speaks for itself.
 
 > *invigilate* — to watch over an exam and enforce its rules.
+
+---
+
+## How Invigil fits in your stack
+
+Invigil does not replace your existing tools; it covers the product-quality gaps they leave behind.
+
+| Tool | Focus | What it misses (that Invigil catches) |
+|---|---|---|
+| **Linters / SonarQube** | Code style, static bugs, complexity | Does the *published artifact* actually boot? Is the README approachable? |
+| **Dependabot / Renovate** | Keeping dependencies updated | Are you enforcing the lockfile in CI? Is there a version matrix? |
+| **OpenSSF Scorecard** | Supply-chain security (branch rules, tokens) | Does the project have a Quick Start? Are failure modes actionable? |
+| **Invigil** | Product quality, stranger-readiness, error hygiene | (Invigil relies on the above tools and enforces their presence) |
 
 ---
 

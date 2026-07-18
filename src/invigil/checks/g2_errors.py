@@ -1,4 +1,4 @@
-"""G2 — every failure mode tells the user the fix (Discipline D2).
+"""G2 — every failure mode tells the user the fix.
 
 Errors are a product surface: a deep-health/preflight surface that names missing
 prerequisites before work starts, a global handler that returns a correlatable

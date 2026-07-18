@@ -4,6 +4,23 @@ All notable changes to Invigil are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-07-18
+
+### Added
+- **Structured plugin architecture**: Invigil now supports local-first project plugins via `.invigil/plugins/*.py`. Drop a script exporting `invigil_register_check()` and it seamlessly integrates into the scorecard.
+  - Zero dependencies: implemented using native `importlib` and `typing.Protocol` instead of heavy dependencies like `pluggy`.
+  - Resilience: a broken plugin emits a `WARN` result and never crashes the gate.
+- **Improved model & reporting**:
+  - Checks now specify an `effort` field (`minutes`, `hours`, `days`). Reports sort failures by effort so teams see quick wins first.
+  - Checks can be marked as `severity="blocker"`. A blocker failure hard-stops the gate, preventing it from being papered over by other passing scores.
+  - Badges now include a human-readable subtitle (e.g., `G3 · B+ · artifact verified daily`).
+- **OSS Positioning**:
+  - The `license-apache2` check is now split: `license-present` is mandatory (blocker), while `license-apache2` is purely advisory. MIT/GPL/MPL projects are no longer penalised.
+  - Removed "doctrine" jargon from user-visible check titles and fix messages.
+  - New `nightly-smoke.yml` workflow enforces the Stranger Gate on Invigil itself.
+  - Profiles (`strict`, `progressive`, `light`) are now externalized to JSON configs.
+  - CLI reference published at `docs/cli-reference.md`.
+
 ## [1.2.0] - 2026-07-18
 
 ### Added
@@ -59,6 +76,7 @@ All notable changes to Invigil are documented here. Format follows
 - **AI-native group (`ai`):** `llms-no-secrets` and `agent-scope-visibility` — the
   statically-honest first slice of "agent blast radius".
 
+[1.3.0]: https://github.com/invigil/invigil/releases/tag/v1.3.0
 [1.2.0]: https://github.com/invigil/invigil/releases/tag/v1.2.0
 [1.1.0]: https://github.com/invigil/invigil/releases/tag/v1.1.0
 [1.0.0]: https://github.com/invigil/invigil/releases/tag/v1.0.0

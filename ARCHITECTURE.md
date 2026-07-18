@@ -48,11 +48,11 @@ invigil/invigil/
 │   └── ISSUE_TEMPLATE/          # ⬜
 ├── src/invigil/
 │   ├── cli.py               # ✅ arg parsing, context flags (--offline, --fix)
-│   ├── hookspecs.py         # ⬜ extension boundaries via pluggy
-│   ├── manager.py           # ⬜ plugin discovery, sorting, runtime registry
+│   ├── hookspecs.py         # ✅ extension boundaries (typing.Protocol, no deps)
+│   ├── manager.py           # ✅ plugin discovery, sorting, runtime registry
 │   ├── mutator.py           # ✅ safe file-system mutation broker for the fix engine
 │   ├── gates/               # 🟡 (today: checks/ modules, @register + central TAGS)
-│   └── profiles/            # 🟡 (today: presets live in engine.py; externalize to *.json)
+│   └── profiles/            # ✅ JSON config profiles (strict, progressive, light)
 ├── schema/invigil.schema.json   # ✅ validation contract for .invigil.yml
 ├── hooks/                       # 🟡 (today: pre-commit entries via `invigil check <group>`)
 ├── tests/{unit,fixtures}/       # 🟡 (today: flat tests/ ; add deliberately-broken fixtures)
@@ -63,15 +63,13 @@ invigil/invigil/
 
 ---
 
-## 3. Local-first plugin architecture (⬜ planned)
+## 3. Local-first plugin architecture (✅ shipped v1.3.0)
 
-Invigil will use **pluggy** for a modular plugin system, decoupling the engine from specific
-frameworks and letting developers run custom rules offline before pushing.
+Invigil uses a **structured, zero-dependency plugin system** via native `importlib` and a `typing.Protocol` contract, decoupling the engine from specific frameworks and letting developers run custom rules offline before pushing. No heavy dependencies like `pluggy` — keeping Invigil fast and light.
 
 ### Execution-context classification
 Every check declares a performance profile so the engine can filter heavy/remote work out of
-fast pre-commit runs. (Today's engine already tags checks `local` / `network` / `heavy`; the
-bounds below are the target aspiration.)
+fast pre-commit runs.
 
 - **local** — zero network, target < 50 ms (schema/layout validation, secret footprint checks).
 - **network** — external reads, target < 2 s (PyPI status, Scorecard lookups).
@@ -79,21 +77,22 @@ bounds below are the target aspiration.)
 
 ### The Python extension contract (`hookspecs.py`)
 ```python
-import pluggy
+from typing import Protocol, runtime_checkable
 
-hookspec = pluggy.HookspecMarker("invigil")
-
-@hookspec
-def invigil_register_check() -> dict:
-    """Return a validation manifest:
-    {
-        "id": "plugin-identifier",
-        "group": "local" | "network" | "heavy",
-        "target_gate": "G1".."G7",
-        "check_callback": callable,
-        "fix_callback": callable,  # optional
-    }
-    """
+@runtime_checkable
+class InvigilPlugin(Protocol):
+    def invigil_register_check(self) -> list[dict]:
+        """Return one manifest dict per check.
+        {
+            "id": "plugin-identifier",
+            "gate": "G1".."G7",
+            "title": "Human readable title",
+            "layer": "local" | "network" | "heavy",
+            "group": "layout" | "secrets" | "ai",
+            "check_callback": callable,
+            "fix_callback": callable,  # optional
+        }
+        """
 ```
 
 ### Polyglot script context (external binaries)
