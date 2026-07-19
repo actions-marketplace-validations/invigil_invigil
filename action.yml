@@ -27,6 +27,16 @@ inputs:
     required: false
     default: ${{ github.token }}
 
+# Composite actions only expose step outputs re-declared here — without this
+# block, steps.<id>.outputs.* is silently empty for consumers (#13).
+outputs:
+  report:
+    description: "Path to the markdown scorecard"
+    value: ${{ steps.score.outputs.report }}
+  badge:
+    description: "Path to the shields.io badge JSON"
+    value: ${{ steps.score.outputs.badge }}
+
 runs:
   using: composite
   steps:
@@ -48,6 +58,7 @@ runs:
         invigil score . --format badge   --output "$RUNNER_TEMP/invigil-badge.json"
         invigil score . --format text   # human-readable in the job log
         echo "report=$RUNNER_TEMP/invigil-report.md" >> "$GITHUB_OUTPUT"
+        echo "badge=$RUNNER_TEMP/invigil-badge.json" >> "$GITHUB_OUTPUT"
 
     - name: Comment on PR
       if: ${{ inputs.comment == 'true' && github.event_name == 'pull_request' }}
